@@ -6,6 +6,8 @@ This project implements a chatbot to collect product reviews after delivery conf
 
 The conversation flow of the review collection chatbot is shown below:
 
+![Chatbot Review Collection Flowchart](chatbot_flowchart.png)
+
 ### Conversation Flow Description
 
 1. **Event: The system signals that the delivery has been confirmed.**
@@ -146,27 +148,64 @@ CREATE TABLE IF NOT EXISTS `interactions` (
    http://localhost
    ```
 
-## API Endpoints
+### Access the Graphical Interface
 
-### Customers
+- **Customer Registration**: Use the "Register Customer" option to add new customers.
+- **Send Message**: Use the "Send Message" option to open the chatbot interface.
+- **View Reviews**: The dashboard will display the list of product reviews.
 
-- **POST /api/customers**: Create a new customer.
-- **GET /api/customers**: Get all customers.
-- **GET /api/customers/:id**: Get a customer by ID.
+### Testing the Endpoints
 
-### Interactions
+You can use tools like `curl` or Postman to test the API endpoints.
 
-- **POST /api/interactions**: Create a new interaction.
+#### Example with `curl`
 
-### Reviews
+- **Create a Customer**:
 
-- **POST /api/review**: Create a new review.
-- **GET /api/reviews**: Get all reviews.
+  ```sh
+  curl -X POST http://localhost:8080/api/customers   -H 'Content-Type: application/json'   -d '{"name": "John Doe", "email": "john.doe@example.com"}'
+  ```
 
-### Chatbot
+- **Get All Customers**:
 
-- **POST /api/chatbot**: Handle chatbot interactions.
+  ```sh
+  curl -X GET http://localhost:8080/api/customers
+  ```
+
+- **Get a Customer by ID**:
+
+  ```sh
+  curl -X GET http://localhost:8080/api/customers/1
+  ```
+
+- **Create an Interaction**:
+
+  ```sh
+  curl -X POST http://localhost:8080/api/interactions   -H 'Content-Type: application/json'   -d '{"customer_id": 1, "message": "Hello, I have a question."}'
+  ```
+
+- **Create a Review**:
+
+  ```sh
+  curl -X POST http://localhost:8080/api/review   -H 'Content-Type: application/json'   -d '{"customer_id": 1, "product_id": 1, "rating": 5, "comments": "Great product!"}'
+  ```
+
+- **Get All Reviews**:
+
+  ```sh
+  curl -X GET http://localhost:8080/api/reviews
+  ```
+
+- **Chatbot Interaction**:
+
+  ```sh
+  curl -X POST http://localhost:8080/api/chatbot   -H 'Content-Type: application/json'   -d '{"customer_id": 1, "message": "Hi"}'
+  ```
 
 ## Contribution
 
 Feel free to contribute to the project. Fork the repository, create a branch, and submit a pull request with your changes.
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for more details.
