@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interface</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <section class="section">
+            <div class="box">
+                <h1 class="title">Chatbot Interface</h1>
+                <div class="chat-box" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+                    <div v-for="message in messages" :class="{'has-text-right': message.from === 'user'}">
+                        <p><strong>{{ message.from }}:</strong> {{ message.content }}</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <input type="text" class="input" v-model="userMessage" @keyup.enter="sendMessage">
+                </div>
+                <button class="button is-primary" @click="sendMessage">Send</button>
+            </div>
+        </section>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
