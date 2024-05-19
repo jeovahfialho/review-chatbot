@@ -1,144 +1,111 @@
 <template>
-  <div class="chat-container">
-    <h1 class="title">Chatbot Interface</h1>
-    <div class="chat-box">
-      <div v-for="message in messages" :class="messageClass(message.from)" :key="message.id">
-        <p><strong>{{ message.from === 'user' ? `${customerName} (${customerID})` : 'Sales' }}:</strong> {{ message.content }}</p>
+  <div class="chatbot-container">
+    <div class="chat-window">
+      <div v-for="message in messages" :key="message.id" class="message" :class="{'user-message': message.sender === 'user', 'bot-message': message.sender === 'bot'}">
+        <span v-if="message.sender === 'bot'">Sales: </span>{{ message.text }}
       </div>
     </div>
-    <div class="field">
-      <input type="text" class="input" v-model="userMessage" @keyup.enter="sendMessage">
+    <div class="input-container">
+      <input v-model="userInput" @keyup.enter="sendMessage" placeholder="Type a message..." />
+      <button @click="sendMessage">Send</button>
     </div>
-    <button class="button is-primary" @click="sendMessage">Enviar</button>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
-      userMessage: '',
-      messages: [
-        { id: 1, from: 'bot', content: 'Hello again! We noticed you\'ve recently received your iPhone 13. We\'d love to hear about your experience. Can you spare a few minutes to share your thoughts?' }
-      ],
-      customerID: null,
-      customerName: '',
-      reviewStep: 0,
-      rating: null,
+      userInput: '',
+      messages: [],
+      customerId: 1 // Replace this with the actual customer ID as needed
     };
   },
-  mounted() {
-    this.customerID = parseInt(this.$route.query.customerID, 10);
-    this.fetchCustomerName();
-  },
   methods: {
-    async fetchCustomerName() {
-      try {
-        const response = await fetch(`http://localhost:8080/api/customers/${this.customerID}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch customer name');
-        }
-        const customer = await response.json();
-        this.customerName = customer.Name;
-      } catch (error) {
-        console.error('Error fetching customer name:', error);
-      }
-    },
-    async sendMessage() {
-      if (this.userMessage.trim() === '' || !this.customerID) return;
+    sendMessage() {
+      if (this.userInput.trim() === '') return;
 
-      const newMessage = {
-        id: this.messages.length + 1,
-        from: 'user',
-        content: this.userMessage
-      };
-      this.messages.push(newMessage);
+      // Add the user's message to the chat
+      this.messages.push({ id: Date.now(), text: this.userInput, sender: 'user' });
 
-      try {
-        const response = await fetch('http://localhost:8080/api/chatbot', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            customer_id: this.customerID,
-            message: this.userMessage
-          })
-        });
+      // Send the message to the backend
+      axios.post('http://localhost:8080/api/chatbot', {
+        customer_id: this.customerId,
+        message: this.userInput
+      })
+      .then(response => {
+        // Add the bot's response to the chat
+        this.messages.push({ id: Date.now() + 1, text: response.data.response, sender: 'bot' });
+      })
+      .catch(error => {
+        console.error('Error sending message:', error);
+      });
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        this.messages.push({
-          id: this.messages.length + 1,
-          from: 'bot',
-          content: data.response
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        this.messages.push({
-          id: this.messages.length + 1,
-          from: 'bot',
-          content: 'Houve um problema ao processar sua solicitação. Por favor, tente novamente mais tarde.'
-        });
-      }
-
-      this.userMessage = '';
-    },
-    messageClass(from) {
-      return {
-        'message-sales': from !== 'user',
-        'message-user': from === 'user',
-        'has-text-right': from === 'user',
-        'has-text-left': from !== 'user'
-      };
+      // Clear the input field
+      this.userInput = '';
     }
   }
 };
 </script>
 
-<style>
-.chat-container {
-  max-width: 600px;
+<style scoped>
+.chatbot-container {
+  width: 400px;
   margin: 0 auto;
-  padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  background-color: #fff;
-  margin-top: 50px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
 }
 
-.chat-box {
-  height: 400px;
-  overflow-y: scroll;
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-bottom: 20px;
+.chat-window {
+  flex-grow: 1;
+  padding: 16px;
+  overflow-y: auto;
 }
 
-.message-sales {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  text-align: left;
-  max-width: 70%;
+.message {
+  margin-bottom: 8px;
+  word-wrap: break-word;
 }
 
-.message-user {
-  background-color: #d1e7dd;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+.user-message {
   text-align: right;
-  max-width: 70%;
-  margin-left: auto;
+  color: blue;
 }
 
-.field {
+.bot-message {
   text-align: left;
+  color: green;
+}
+
+.input-container {
+  display: flex;
+  padding: 16px;
+  border-top: 1px solid #ccc;
+}
+
+input {
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
 </style>

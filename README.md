@@ -6,8 +6,6 @@ This project implements a chatbot to collect product reviews after delivery conf
 
 The conversation flow of the review collection chatbot is shown below:
 
-![Chatbot Review Collection Flowchart](chatbot_flowchart.png)
-
 ### Conversation Flow Description
 
 1. **Event: The system signals that the delivery has been confirmed.**

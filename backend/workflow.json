@@ -1,0 +1,73 @@
+{
+    "default": {
+      "greeting": {
+        "trigger": ["hi", "hello"],
+        "response": "Hi, I'm the sales chatbot, welcome.",
+        "next": "options"
+      },
+      "options": {
+        "trigger": [],
+        "response": "You can ask about your order, request a return, get product recommendations, or leave a review. What would you like to do?",
+        "next": {
+          "order": "order_info",
+          "return": "initiate_return",
+          "recommend": "product_recommendations",
+          "review": "review_intro"
+        }
+      },
+      "order_info": {
+        "trigger": ["order", "status"],
+        "response": "Please provide your order number.",
+        "next": "get_order_status"
+      },
+      "initiate_return": {
+        "trigger": ["return"],
+        "response": "Please provide your order number to initiate a return.",
+        "next": "process_return"
+      },
+      "product_recommendations": {
+        "trigger": ["recommend", "products"],
+        "response": "Here are some products you might like: [Product List]",
+        "next": "end"
+      },
+      "review_intro": {
+        "trigger": ["review"],
+        "response": "We noticed you've recently received [product name]. We'd love to hear about your experience. Can you share your thoughts?",
+        "next": "ask_rating"
+      },
+      "ask_rating": {
+        "trigger": [],
+        "response": "Great! On a scale of 1 to 5, how would you rate [product name]?",
+        "next": "ask_comment"
+      },
+      "ask_comment": {
+        "trigger": [],
+        "response": "Thank you for your rating! Would you like to leave any additional comments about the product?",
+        "next": "save_review"
+      },
+      "save_review": {
+        "trigger": [],
+        "response": "Thank you for your feedback! If you need anything else, I'm here to help.",
+        "action": "saveReview",
+        "next": "end"
+      },
+      "get_order_status": {
+        "trigger": [],
+        "response": "Fetching your order status...",
+        "action": "getOrderStatus",
+        "next": "end"
+      },
+      "process_return": {
+        "trigger": [],
+        "response": "Processing your return request...",
+        "action": "initiateReturn",
+        "next": "end"
+      },
+      "end": {
+        "trigger": [],
+        "response": "Is there anything else I can help you with?",
+        "next": "options"
+      }
+    }
+  }
+  

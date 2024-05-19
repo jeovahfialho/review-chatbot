@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"review-chatbot/models"
 	"review-chatbot/services"
+	"review-chatbot/workflow"
 	"strconv"
 	"time"
 
@@ -13,12 +16,37 @@ import (
 type ChatbotHandler struct {
 	interactionService services.InteractionService
 	reviewService      services.ReviewService
+	orderService       services.OrderService
+	workflow           workflow.Workflow
 }
 
-func NewChatbotHandler(interactionService services.InteractionService, reviewService services.ReviewService) *ChatbotHandler {
+func NewChatbotHandler(interactionService services.InteractionService, reviewService services.ReviewService, orderService services.OrderService) *ChatbotHandler {
+	workflowPaths := []string{
+		"./controllers/workflow.json",
+		"./workflow.json",
+	}
+
+	var loadedWorkflow workflow.Workflow
+	var err error
+
+	for _, path := range workflowPaths {
+		if _, err := os.Stat(path); err == nil {
+			loadedWorkflow, err = workflow.LoadWorkflow(path)
+			if err == nil {
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		panic("Failed to load workflow.json from any known path")
+	}
+
 	return &ChatbotHandler{
 		interactionService: interactionService,
 		reviewService:      reviewService,
+		orderService:       orderService,
+		workflow:           loadedWorkflow,
 	}
 }
 
@@ -33,59 +61,96 @@ func (h *ChatbotHandler) Handle(c *gin.Context) {
 		return
 	}
 
-	// Simulando o estado da conversa
 	session := h.getSession(req.CustomerID)
-	switch session.State {
-	case "initial":
-		session.State = "ask_rating"
-		h.setSession(req.CustomerID, session)
-		c.JSON(http.StatusOK, gin.H{"response": "Great! On a scale of 1-5, how would you rate the iPhone 13?"})
-	case "ask_rating":
-		rating, err := strconv.Atoi(req.Message)
-		if err != nil || rating < 1 || rating > 5 {
-			c.JSON(http.StatusBadRequest, gin.H{"response": "Please provide a rating between 1 and 5."})
-			return
-		}
-		session.Rating = rating
-		session.State = "ask_comment"
-		h.setSession(req.CustomerID, session)
-		c.JSON(http.StatusOK, gin.H{"response": "Great! Please provide any additional comments about the product."})
-	case "ask_comment":
-		session.Comment = req.Message
-		session.State = "finished"
-		h.setSession(req.CustomerID, session)
 
-		review := &models.Review{
-			CustomerID: req.CustomerID,
-			ProductID:  1, // Substitua pelo ID real do produto
-			Rating:     session.Rating,
-			Comments:   session.Comment,
-			ReviewTime: time.Now(),
-		}
-
-		if err := h.reviewService.CreateReview(review); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"response": "Thank you for your feedback! If you have any more thoughts or need assistance with anything else, feel free to reach out!"})
-	default:
-		c.JSON(http.StatusOK, gin.H{"response": "Thank you for your message. How can I assist you further?"})
+	// Sempre começar com a mensagem de saudação se o estado da sessão for "greeting"
+	if session.State == "greeting" && (req.Message == "hi" || req.Message == "hello") {
+		currentStep := h.workflow["default"]["greeting"]
+		session.State = "options"
+		h.setSession(req.CustomerID, session)
+		log.Printf("Greeting Step: %+v", currentStep)
+		log.Printf("Greeting Step Response: %s", currentStep.Response)
+		c.JSON(http.StatusOK, gin.H{"response": "Sales: " + currentStep.Response})
+		return
 	}
+
+	currentStep, nextState := workflow.GetNextStep(h.workflow, session.State, req.Message)
+
+	log.Printf("Current Step: %+v", currentStep)
+	log.Printf("Current Step Response: %s", currentStep.Response)
+
+	if currentStep.Action != "" {
+		// Perform action if any
+		switch currentStep.Action {
+		case "getOrderStatus":
+			orderID, err := strconv.Atoi(req.Message)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+				return
+			}
+			status, err := h.orderService.GetOrderStatus(orderID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			currentStep.Response = status
+		case "initiateReturn":
+			orderID, err := strconv.Atoi(req.Message)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+				return
+			}
+			status, err := h.orderService.InitiateReturn(orderID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			currentStep.Response = status
+		case "saveReview":
+			err := h.saveReview(session, req.Message)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+	}
+
+	session.State = nextState
+	h.setSession(req.CustomerID, session)
+	responseMessage := "Sales: " + currentStep.Response
+	log.Printf("Response Message: %s", responseMessage)
+	c.JSON(http.StatusOK, gin.H{"response": responseMessage})
 }
 
-// Simulação de uma sessão em memória (substitua por uma solução mais robusta conforme necessário)
-var sessions = make(map[int]*Session)
+func (h *ChatbotHandler) saveReview(session *Session, comments string) error {
+	rating, _ := strconv.Atoi(session.Data["rating"])
+	review := &models.Review{
+		CustomerID: session.CustomerID,
+		ProductID:  1, // Substitute with actual product ID
+		Rating:     rating,
+		Comments:   comments,
+		ReviewTime: time.Now(),
+	}
+	return h.reviewService.CreateReview(review)
+}
 
+// Session management code remains the same
 type Session struct {
-	State   string
-	Rating  int
-	Comment string
+	CustomerID int
+	State      string
+	Data       map[string]string
 }
+
+var sessions = make(map[int]*Session)
 
 func (h *ChatbotHandler) getSession(customerID int) *Session {
 	session, exists := sessions[customerID]
 	if !exists {
-		session = &Session{State: "initial"}
+		session = &Session{
+			CustomerID: customerID,
+			State:      "greeting",
+			Data:       make(map[string]string),
+		}
 		sessions[customerID] = session
 	}
 	return session

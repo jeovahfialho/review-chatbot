@@ -43,12 +43,13 @@ func main() {
 	customerService := services.NewCustomerService(customerRepo)
 	reviewService := services.NewReviewService(reviewRepo)
 	interactionService := services.NewInteractionService(interactionRepo)
+	orderService := services.NewOrderService()
 
 	// Initialize controllers with the services
 	customerController := controllers.NewCustomerController(customerService)
 	reviewController := controllers.NewReviewController(reviewService)
 	interactionController := controllers.NewInteractionController(interactionService)
-	chatbotHandler := controllers.NewChatbotHandler(interactionService, reviewService)
+	chatbotHandler := controllers.NewChatbotHandler(interactionService, reviewService, orderService)
 
 	router := gin.Default()
 

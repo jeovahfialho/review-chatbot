@@ -30,6 +30,8 @@ services:
       - DB_NAME=yourdb
     networks:
       - review-chatbot-network
+    volumes:
+      - ./backend:/app
 
   frontend:
     build:
