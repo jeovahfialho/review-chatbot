@@ -249,6 +249,94 @@ You can use tools like `curl` or Postman to test the API endpoints.
   curl -X POST http://localhost:8080/api/chatbot   -H 'Content-Type: application/json'   -d '{"customer_id": 1, "message": "Hi"}'
   ```
 
+
+## Sentiment Analysis Implementation
+
+### Motivation for Sentiment Analysis
+
+The decision to incorporate sentiment analysis into the review flow was motivated by the need to gain deeper insights into customer feedback. While star ratings provide quantitative data, they do not capture the qualitative nuances of customer opinions. Sentiment analysis allows us to understand the emotional tone behind the feedback, which can help in improving products and services more effectively.
+
+### What the Application Does
+
+The application uses a machine learning model to perform sentiment analysis on the comments provided by customers during the review process. When a customer submits a comment, the application sends the text to a sentiment analysis service, which returns the sentiment score and label (e.g., positive, negative, neutral). This information is logged for further analysis and can be used to identify trends in customer feedback.
+
+### Viewing Sentiment Analysis Results
+
+The results of the sentiment analysis are logged in the backend service logs. To view these results, you can check the logs of the backend container. The logs will include entries showing the sentiment analysis result for each comment submitted by customers.
+
+#### Example Log Entry
+
+Here is an example of what the log entries for sentiment analysis results might look like:
+
+```plaintext
+2024/05/20 13:45:23 Sentiment analysis result: [{Label: "POSITIVE", Score: 0.95}]
+```
+
+### How to Access the Logs
+
+You can access the logs of the backend container using the following Docker command:
+
+```sh
+docker-compose logs backend
+```
+
+This command will display the logs of the backend service, including the sentiment analysis results.
+
+### Implementation Details
+
+#### Sentiment Analysis Service
+
+The sentiment analysis service is implemented using a Python-based machine learning model. The service is containerized and runs alongside the backend and frontend services. The backend sends HTTP requests to the sentiment analysis service to get the sentiment score for each comment.
+
+#### Sentiment Analysis Endpoint
+
+The sentiment analysis service exposes an endpoint at `/sentiment` which accepts POST requests with the following JSON payload:
+
+```json
+{
+  "text": "The comment text to analyze"
+}
+```
+
+The service responds with a JSON array containing the sentiment label and score:
+
+```json
+[
+  {
+    "label": "POSITIVE",
+    "score": 0.95
+  }
+]
+```
+
+### How Sentiment Analysis is Integrated
+
+In the backend, the `chatbot_controller.go` file has been updated to include calls to the sentiment analysis service. When a customer submits a comment, the application sends the comment text to the sentiment analysis service and logs the result.
+
+Here is the relevant code snippet from `chatbot_controller.go`:
+
+```go
+// analyzeSentiment calls the sentiment analysis API
+func analyzeSentiment(text string) ([]SentimentResponse, error) {
+    sentimentReq := SentimentRequest{Text: text}
+    jsonValue, _ := json.Marshal(sentimentReq)
+    resp, err := http.Post("http://sentiment-analysis:5000/sentiment", "application/json", bytes.NewBuffer(jsonValue))
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+
+    var sentimentResp []SentimentResponse
+    if err := json.NewDecoder(resp.Body).Decode(&sentimentResp); err != nil {
+        return nil, err
+    }
+
+    return sentimentResp, nil
+}
+```
+
+By incorporating sentiment analysis, we aim to provide a more comprehensive understanding of customer feedback, enabling more informed decisions to enhance customer satisfaction and product quality.
+
 ## Scope
 
 The scope is limited to what was requested in the document, without the possibility of reviewing requirements and refining tasks. The limited execution time of 4 hours ends up leaving aside some implementations such as: unit testing, interface testing, integration testing, monitoring, API documentation, among other things. If it is necessary to implement, give me a few more hours.
