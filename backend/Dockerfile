@@ -37,5 +37,5 @@ RUN chmod +x /root/wait-for-it.sh
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Command to run the executable
-CMD ["/root/wait-for-it.sh", "db", "./main"]
+# Command to run the executable, waiting for the database and sentiment analysis service
+CMD /root/wait-for-it.sh db 3306 -- /root/wait-for-it.sh sentiment-analysis 5000 -- ./main

@@ -3,14 +3,15 @@
 set -e
 
 host="$1"
-shift
+port="$2"
+shift 2
 cmd="$@"
 
-until nc -z -v -w30 $host 3306
+until nc -z -v -w30 $host $port
 do
-  echo "Waiting for database connection..."
+  echo "Waiting for $host:$port connection. It could take some minutes."
   sleep 1
 done
 
->&2 echo "Database is up - executing command"
+>&2 echo "$host:$port is up - executing command"
 exec $cmd

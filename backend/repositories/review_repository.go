@@ -22,7 +22,7 @@ type reviewRepository struct {
 
 // NewReviewRepository creates a new instance of reviewRepository
 func NewReviewRepository(db *sqlx.DB, customerRepo CustomerRepository) ReviewRepository {
-	return &reviewRepository{db, customerRepo}
+	return &reviewRepository{db: db, customerRepo: customerRepo}
 }
 
 // GetReviews retrieves all reviews

@@ -10,14 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ReviewRequest is used to bind the incoming JSON payload
-type ReviewRequest struct {
-	CustomerID int    `json:"customer_id"`
-	ProductID  int    `json:"product_id"`
-	Rating     int    `json:"rating"`
-	Comments   string `json:"comments"`
-}
-
 // ReviewController handles review-related requests
 type ReviewController struct {
 	service services.ReviewService

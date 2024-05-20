@@ -2,16 +2,13 @@
   <div class="chat-container">
     <h1 class="title">Chatbot Interface</h1>
     <div class="chat-box">
-      <!-- Loop through the messages and display each one with appropriate styling -->
       <div v-for="message in messages" :class="messageClass(message.from)" :key="message.id">
         <p><strong>{{ message.from === 'user' ? `${customerName} (${customerID})` : 'Sales' }}:</strong> {{ message.content }}</p>
       </div>
     </div>
-    <!-- Input field for the user to type their message -->
     <div class="field">
       <input type="text" class="input" v-model="userMessage" @keyup.enter="sendMessage">
     </div>
-    <!-- Button to send the message -->
     <button class="button is-primary" @click="sendMessage">Send</button>
   </div>
 </template>
@@ -20,21 +17,16 @@
 export default {
   data() {
     return {
-      userMessage: '', // The user's message input
-      messages: [
-        // Initial message from the bot
-        { id: 1, from: 'bot', content: 'Hello again! We noticed you\'ve recently received your iPhone 13. We\'d love to hear about your experience. Can you spare a few minutes to share your thoughts?' }
-      ],
-      customerID: null, // Customer ID from the URL query
-      customerName: '', // Customer name to display
-      reviewStep: 0, // Step in the review process
-      rating: null, // User's rating
+      userMessage: '',
+      messages: [],
+      customerID: null,
+      customerName: '',
     };
   },
   mounted() {
-    // Get the customer ID from the URL query and fetch the customer name
     this.customerID = parseInt(this.$route.query.customerID, 10);
     this.fetchCustomerName();
+    this.initiateConversation();
   },
   methods: {
     async fetchCustomerName() {
@@ -44,15 +36,46 @@ export default {
           throw new Error('Failed to fetch customer name');
         }
         const customer = await response.json();
-        this.customerName = customer.Name; // Set the customer name
+        this.customerName = customer.Name;
       } catch (error) {
         console.error('Error fetching customer name:', error);
+      }
+    },
+    async initiateConversation() {
+      try {
+        const response = await fetch('http://localhost:8080/api/chatbot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            customer_id: this.customerID,
+            message: 'start_conversation'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        this.messages.push({
+          id: this.messages.length + 1,
+          from: 'bot',
+          content: data.response
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        this.messages.push({
+          id: this.messages.length + 1,
+          from: 'bot',
+          content: 'There was a problem processing your request. Please try again later.'
+        });
       }
     },
     async sendMessage() {
       if (this.userMessage.trim() === '' || !this.customerID) return;
 
-      // Add the user's message to the messages array
       const newMessage = {
         id: this.messages.length + 1,
         from: 'user',
@@ -61,7 +84,6 @@ export default {
       this.messages.push(newMessage);
 
       try {
-        // Send the user's message to the backend API
         const response = await fetch('http://localhost:8080/api/chatbot', {
           method: 'POST',
           headers: {
@@ -78,7 +100,6 @@ export default {
         }
 
         const data = await response.json();
-        // Add the bot's response to the messages array
         this.messages.push({
           id: this.messages.length + 1,
           from: 'bot',
@@ -86,7 +107,6 @@ export default {
         });
       } catch (error) {
         console.error('Error:', error);
-        // Show an error message if the request fails
         this.messages.push({
           id: this.messages.length + 1,
           from: 'bot',
@@ -94,10 +114,8 @@ export default {
         });
       }
 
-      // Clear the user's message input
       this.userMessage = '';
     },
-    // Determine the CSS class for the message based on who sent it
     messageClass(from) {
       return {
         'message-sales': from !== 'user',
