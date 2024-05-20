@@ -230,7 +230,7 @@ You can use tools like `curl` or Postman to test the API endpoints.
   ```sh
   curl -X GET http://localhost:8080/api/customers/1
   ```
-  
+
 - **Create a Review**:
 
   ```sh
@@ -248,6 +248,10 @@ You can use tools like `curl` or Postman to test the API endpoints.
   ```sh
   curl -X POST http://localhost:8080/api/chatbot   -H 'Content-Type: application/json'   -d '{"customer_id": 1, "message": "Hi"}'
   ```
+
+## Scope
+
+The scope is limited to what was requested in the document, without the possibility of reviewing requirements and refining tasks. The limited execution time of 4 hours ends up leaving aside some implementations such as: unit testing, interface testing, integration testing, monitoring, API documentation, among other things. If it is necessary to implement, give me a few more hours.
 
 ## Contribution
 
