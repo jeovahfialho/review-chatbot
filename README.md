@@ -6,7 +6,6 @@ This project implements a chatbot to collect product reviews after delivery conf
 
 The conversation flow of the review collection chatbot is shown below:
 
-![Chatbot Review Collection Flowchart](chatbot_flowchart.png)
 
 ### Conversation Flow Description
 
@@ -18,6 +17,22 @@ The conversation flow of the review collection chatbot is shown below:
    - **Chatbot**: "Thank you for your rating! Would you like to leave any additional comments about the product?"
    - **User**: "Yes, it's a great product!"
    - **Chatbot**: "Thank you for your feedback! If you need anything else, I'm here to help."
+
+2. **Event: The user wants to start a new conversation.**
+   - **User**: "Hi, I am here again."
+   - **Chatbot**: "Thank you for your message. How can I assist you further?"
+
+3. **Event: The user wants to return a product.**
+   - **User**: "I want to return a product."
+   - **Chatbot**: "I'm sorry to hear that. Can you please provide the order number?"
+   - **User**: "[order number]"
+   - **Chatbot**: "Thank you. Your return request has been initiated. You will receive further instructions via email."
+
+4. **Event: The user is looking for product recommendations.**
+   - **User**: "Can you recommend a product?"
+   - **Chatbot**: "Sure! What kind of product are you looking for?"
+   - **User**: "[product type]"
+   - **Chatbot**: "Here are some recommendations: [product recommendations]."
 
 ## Project Structure
 
@@ -154,6 +169,44 @@ CREATE TABLE IF NOT EXISTS `interactions` (
 - **Send Message**: Use the "Send Message" option to open the chatbot interface.
 - **View Reviews**: The dashboard will display the list of product reviews.
 
+## Manual Testing
+
+### Initial Interaction
+
+1. **Visit the chatbot page**: `http://localhost/chatbot?customerID=1`
+2. **Expected Chatbot Message**: "Hello! We noticed you've recently received [product name]. We'd love to hear about your experience. Can you share your thoughts?"
+3. **User**: "Yes"
+4. **Expected Chatbot Message**: "Great! On a scale of 1 to 5, how would you rate [product name]?"
+
+### Providing a Rating
+
+5. **User**: "5"
+6. **Expected Chatbot Message**: "Thank you for your rating! Would you like to leave any additional comments about the product?"
+
+### Providing Additional Comments
+
+7. **User**: "Yes, it's a great product!"
+8. **Expected Chatbot Message**: "Thank you for your feedback! If you need anything else, I'm here to help."
+
+### Starting a New Conversation
+
+9. **User**: "Hi, I am here again."
+10. **Expected Chatbot Message**: "Thank you for your message. How can I assist you further?"
+
+### Initiating a Product Return
+
+11. **User**: "I want to return a product"
+12. **Expected Chatbot Message**: "I'm sorry to hear that. Can you please provide the order number?"
+13. **User****: "[order number]"
+14. **Expected Chatbot Message**: "Thank you. Your return request has been initiated. You will receive further instructions via email."
+
+### Requesting Product Recommendations
+
+15. **User**: "Can you recommend a product?"
+16. **Expected Chatbot Message**: "Sure! What kind of product are you looking for?"
+17. **User**: "[product type]"
+18. **Expected Chatbot Message**: "Here are some recommendations: [product recommendations]."
+
 ### Testing the Endpoints
 
 You can use tools like `curl` or Postman to test the API endpoints.
@@ -177,13 +230,7 @@ You can use tools like `curl` or Postman to test the API endpoints.
   ```sh
   curl -X GET http://localhost:8080/api/customers/1
   ```
-
-- **Create an Interaction**:
-
-  ```sh
-  curl -X POST http://localhost:8080/api/interactions   -H 'Content-Type: application/json'   -d '{"customer_id": 1, "message": "Hello, I have a question."}'
-  ```
-
+  
 - **Create a Review**:
 
   ```sh
@@ -205,7 +252,3 @@ You can use tools like `curl` or Postman to test the API endpoints.
 ## Contribution
 
 Feel free to contribute to the project. Fork the repository, create a branch, and submit a pull request with your changes.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.

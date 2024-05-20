@@ -2,18 +2,22 @@
   <div class="dashboard-container">
     <h1 class="title">Dashboard</h1>
     <div class="menu">
-      <router-link to="/add-customer" class="button is-primary">Cadastrar Cliente</router-link>
-      <router-link to="/send-message" class="button is-link">Enviar Mensagem</router-link>
+      <!-- Links to navigate to the customer registration and send message pages -->
+      <router-link to="/add-customer" class="button is-primary">Register Customer</router-link>
+      <router-link to="/send-message" class="button is-link">Send Message</router-link>
     </div>
     <div class="tables">
-      <h2 class="subtitle">Lista de Clientes</h2>
+      <h2 class="subtitle">Customer List</h2>
+      <!-- Component to display the customer table -->
       <CustomerTable />
+      <!-- Component to display the review table -->
       <ReviewTable />
     </div>
   </div>
 </template>
 
 <script>
+// Import the customer and review table components
 import CustomerTable from './CustomerTable.vue';
 import ReviewTable from './ReviewTable.vue';
 

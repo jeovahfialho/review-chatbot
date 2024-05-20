@@ -1,14 +1,16 @@
 <template>
   <div class="form-container">
-    <h1 class="title">Cadastrar Cliente</h1>
+    <h1 class="title">Register Customer</h1>
     <div class="field">
-      <label class="label">Nome do Cliente</label>
+      <label class="label">Customer Name</label>
+      <!-- Input field for new customer name -->
       <div class="control">
-        <input class="input" type="text" v-model="newCustomerName" placeholder="Nome do Cliente">
+        <input class="input" type="text" v-model="newCustomerName" placeholder="Customer Name">
       </div>
     </div>
+    <!-- Button to add a new customer -->
     <div class="field">
-      <button class="button is-primary" @click="addCustomer">Adicionar</button>
+      <button class="button is-primary" @click="addCustomer">Add</button>
     </div>
   </div>
 </template>
@@ -17,7 +19,7 @@
 export default {
   data() {
     return {
-      newCustomerName: ''
+      newCustomerName: '' // The new customer's name
     };
   },
   methods: {
@@ -25,6 +27,7 @@ export default {
       if (this.newCustomerName.trim() === '') return;
 
       try {
+        // Send a request to the backend to add a new customer
         const response = await fetch('http://localhost:8080/api/customers', {
           method: 'POST',
           headers: {
@@ -35,8 +38,9 @@ export default {
         if (!response.ok) {
           throw new Error('Failed to add customer');
         }
+        // Clear the input field and show a success message
         this.newCustomerName = '';
-        alert('Cliente adicionado com sucesso!');
+        alert('Customer added successfully!');
       } catch (error) {
         console.error('Error adding customer:', error);
       }

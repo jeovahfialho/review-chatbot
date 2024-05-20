@@ -21,7 +21,7 @@ COPY . .
 RUN go build -o main .
 
 # Start a new stage from scratch
-FROM alpine:latest  
+FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
@@ -29,9 +29,13 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+COPY wait-for-it.sh /root/wait-for-it.sh
+
+# Ensure the wait-for-it script has execution permissions
+RUN chmod +x /root/wait-for-it.sh
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
 # Command to run the executable
-CMD ["./main"]
+CMD ["/root/wait-for-it.sh", "db", "./main"]

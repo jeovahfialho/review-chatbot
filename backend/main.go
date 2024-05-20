@@ -11,13 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CORSMiddleware handles Cross-Origin Resource Sharing (CORS) settings
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Set the headers for CORS
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization, Accept, X-Requested-With, Origin")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
+		// Handle preflight requests
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
@@ -50,6 +53,7 @@ func main() {
 	interactionController := controllers.NewInteractionController(interactionService)
 	chatbotHandler := controllers.NewChatbotHandler(interactionService, reviewService)
 
+	// Create a new Gin router
 	router := gin.Default()
 
 	// Use the CORS middleware
@@ -58,15 +62,16 @@ func main() {
 	// API routes
 	api := router.Group("/api")
 	{
-		api.POST("/customers", customerController.CreateCustomer)
-		api.GET("/customers", customerController.GetCustomers)
-		api.GET("/customers/:id", customerController.GetCustomerByID)
-		api.POST("/interaction", interactionController.CreateInteraction)
-		api.POST("/review", reviewController.CreateReview)
-		api.GET("/reviews", reviewController.GetReviews)
-		api.POST("/chatbot", chatbotHandler.Handle)
+		api.POST("/customers", customerController.CreateCustomer)         // Create a new customer
+		api.GET("/customers", customerController.GetCustomers)            // Get all customers
+		api.GET("/customers/:id", customerController.GetCustomerByID)     // Get a customer by ID
+		api.POST("/interaction", interactionController.CreateInteraction) // Create a new interaction
+		api.POST("/review", reviewController.CreateReview)                // Create a new review
+		api.GET("/reviews", reviewController.GetReviews)                  // Get all reviews
+		api.POST("/chatbot", chatbotHandler.Handle)                       // Handle chatbot interactions
 	}
 
+	// Start the server on port 8080
 	log.Println("Serving APIs on port 8080...")
 	log.Fatal(router.Run(":8080"))
 }

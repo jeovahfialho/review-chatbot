@@ -1,24 +1,28 @@
 <template>
   <div class="customer-container">
-    <h1 class="title">Cadastrar e Selecionar Cliente</h1>
+    <h1 class="title">Register and Select Customer</h1>
     <div class="card">
       <div class="card-content">
-        <h2 class="subtitle">Cadastrar Cliente</h2>
+        <h2 class="subtitle">Register Customer</h2>
         <div class="field has-addons">
+          <!-- Input field for new customer name -->
           <div class="control">
-            <input class="input" type="text" v-model="newCustomerName" placeholder="Nome do Cliente">
+            <input class="input" type="text" v-model="newCustomerName" placeholder="Customer Name">
           </div>
+          <!-- Button to add a new customer -->
           <div class="control">
-            <button class="button is-primary" @click="addCustomer">Adicionar</button>
+            <button class="button is-primary" @click="addCustomer">Add</button>
           </div>
         </div>
-        <h2 class="subtitle">Selecionar Cliente</h2>
+        <h2 class="subtitle">Select Customer</h2>
+        <!-- Dropdown to select a customer from the list -->
         <div class="select">
           <select v-model="selectedCustomerID">
             <option v-for="customer in customers" :value="customer.ID" :key="customer.ID">{{ customer.Name }}</option>
           </select>
         </div>
-        <button class="button is-link" @click="goToChatbot">Ir para Chatbot</button>
+        <!-- Button to navigate to the chatbot interface -->
+        <button class="button is-link" @click="goToChatbot">Go to Chatbot</button>
       </div>
     </div>
   </div>
@@ -28,15 +32,17 @@
 export default {
   data() {
     return {
-      newCustomerName: '',
-      customers: [],
-      selectedCustomerID: null
+      newCustomerName: '', // The new customer's name
+      customers: [], // List of existing customers
+      selectedCustomerID: null // ID of the selected customer
     };
   },
   mounted() {
+    // Fetch the list of customers when the component is mounted
     this.fetchCustomers();
   },
   methods: {
+    // Fetch the list of customers from the backend
     async fetchCustomers() {
       try {
         const response = await fetch('http://localhost:8080/api/customers');
@@ -48,6 +54,7 @@ export default {
         console.error('Error fetching customers:', error);
       }
     },
+    // Add a new customer to the backend
     async addCustomer() {
       if (this.newCustomerName.trim() === '') return;
 
@@ -63,19 +70,20 @@ export default {
           throw new Error('Failed to add customer');
         }
         const newCustomer = await response.json();
-        this.customers.push(newCustomer);
-        this.selectedCustomerID = newCustomer.ID;
-        this.newCustomerName = '';
-        this.fetchCustomers();
+        this.customers.push(newCustomer); // Add the new customer to the list
+        this.selectedCustomerID = newCustomer.ID; // Set the new customer as the selected customer
+        this.newCustomerName = ''; // Clear the input field
+        this.fetchCustomers(); // Refresh the customer list
       } catch (error) {
         console.error('Error adding customer:', error);
       }
     },
+    // Navigate to the chatbot interface with the selected customer ID
     goToChatbot() {
       if (this.selectedCustomerID) {
         this.$router.push({ path: '/chatbot', query: { customerID: this.selectedCustomerID } });
       } else {
-        alert('Por favor, selecione um cliente.');
+        alert('Please select a customer.');
       }
     }
   }

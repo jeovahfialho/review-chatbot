@@ -12,18 +12,23 @@
             <div class="box">
                 <h1 class="title">Chatbot Interface</h1>
                 <div class="chat-box" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+                    <!-- Display messages in the chat box, align right if the message is from the user -->
                     <div v-for="message in messages" :class="{'has-text-right': message.from === 'user'}">
                         <p><strong>{{ message.from }}:</strong> {{ message.content }}</p>
                     </div>
                 </div>
+                <!-- Input field for user to type their message -->
                 <div class="field">
                     <input type="text" class="input" v-model="userMessage" @keyup.enter="sendMessage">
                 </div>
+                <!-- Button to send the message -->
                 <button class="button is-primary" @click="sendMessage">Send</button>
             </div>
         </section>
     </div>
+    <!-- Import Vue.js -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <!-- Import the external JavaScript file for the Vue.js application -->
     <script src="/static/app.js"></script>
 </body>
 </html>
