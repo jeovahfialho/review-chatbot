@@ -11,9 +11,10 @@ import (
 
 // ReviewRepository defines the methods for interacting with review data
 type ReviewRepository interface {
-	CreateReview(review *models.Review) error                       // Create a new review
-	GetReviews() ([]models.Review, error)                           // Retrieve all reviews
-	GetAverageRating(startDate, endDate time.Time) (float64, error) // Get Average rating of reviews
+	CreateReview(review *models.Review) error                                                                        // Create a new review
+	GetReviews() ([]models.Review, error)                                                                            // Retrieve all reviews
+	GetAverageRating(startDate, endDate time.Time) (float64, error)                                                  // Get average rating of reviews within a date range
+	GetAverageRatingsInIntervals(startDate, endDate time.Time, intervalMinutes int) ([]models.IntervalRating, error) // Get average ratings in intervals
 }
 
 // reviewRepository is the implementation of the ReviewRepository interface
@@ -24,7 +25,7 @@ type reviewRepository struct {
 
 // NewReviewRepository creates a new instance of reviewRepository
 func NewReviewRepository(db *sqlx.DB, customerRepo CustomerRepository) ReviewRepository {
-	return &reviewRepository{db: db, customerRepo: customerRepo}
+	return &reviewRepository{db, customerRepo}
 }
 
 // GetReviews retrieves all reviews
@@ -60,15 +61,41 @@ func (r *reviewRepository) CreateReview(review *models.Review) error {
 	return err // Return any error that occurred during the insertion
 }
 
+// GetAverageRating calculates and returns the average rating of reviews within a date range
 func (r *reviewRepository) GetAverageRating(startDate, endDate time.Time) (float64, error) {
-
 	var avgRating float64
-	query := "SELECT AVG(rating) as avg_rating FROM `reviews` WHERE `review_time` BETWEEN ? AND ?"
-
+	query := "SELECT COALESCE(AVG(rating), 0) as avg_rating FROM `reviews` WHERE `review_time` BETWEEN ? AND ?"
 	err := r.db.Get(&avgRating, query, startDate, endDate)
-
 	if err != nil {
 		return 0, err
 	}
 	return avgRating, nil
+}
+
+// GetAverageRatingsInIntervals calculates the average ratings of reviews in intervals within a date range
+func (r *reviewRepository) GetAverageRatingsInIntervals(startDate, endDate time.Time, intervalMinutes int) ([]models.IntervalRating, error) {
+	var intervalRatings []models.IntervalRating
+
+	for currentStart := startDate; currentStart.Before(endDate); currentStart = currentStart.Add(time.Duration(intervalMinutes) * time.Minute) {
+		currentEnd := currentStart.Add(time.Duration(intervalMinutes) * time.Minute)
+		if currentEnd.After(endDate) {
+			currentEnd = endDate
+		}
+
+		var avgRating float64
+		query := "SELECT COALESCE(AVG(rating), 0) as avg_rating FROM `reviews` WHERE `review_time` BETWEEN ? AND ?"
+		err := r.db.Get(&avgRating, query, currentStart, currentEnd)
+		if err != nil {
+			return nil, err
+		}
+
+		intervalRating := models.IntervalRating{
+			StartDate:     currentStart,
+			EndDate:       currentEnd,
+			AverageRating: avgRating,
+		}
+		intervalRatings = append(intervalRatings, intervalRating)
+	}
+
+	return intervalRatings, nil
 }

@@ -8,9 +8,10 @@ import (
 
 // ReviewService defines the methods for review-related operations
 type ReviewService interface {
-	CreateReview(review *models.Review) error                       // Create a new review
-	GetReviews() ([]models.Review, error)                           // Retrieve all reviews
-	GetAverageRating(startDate, endDate time.Time) (float64, error) // Get Average rating of reviews
+	CreateReview(review *models.Review) error                                                                        // Create a new review
+	GetReviews() ([]models.Review, error)                                                                            // Retrieve all reviews
+	GetAverageRating(startDate, endDate time.Time) (float64, error)                                                  // Get average rating of reviews within a date range
+	GetAverageRatingsInIntervals(startDate, endDate time.Time, intervalMinutes int) ([]models.IntervalRating, error) // Get average ratings in intervals
 }
 
 // reviewService is the implementation of the ReviewService interface
@@ -33,6 +34,12 @@ func (s *reviewService) GetReviews() ([]models.Review, error) {
 	return s.repo.GetReviews() // Delegate to the repository method
 }
 
+// GetAverageRating retrieves the average rating of reviews within a date range
 func (s *reviewService) GetAverageRating(startDate, endDate time.Time) (float64, error) {
-	return s.repo.GetAverageRating()
+	return s.repo.GetAverageRating(startDate, endDate) // Delegate to the repository method
+}
+
+// GetAverageRatingsInIntervals retrieves the average ratings of reviews in intervals within a date range
+func (s *reviewService) GetAverageRatingsInIntervals(startDate, endDate time.Time, intervalMinutes int) ([]models.IntervalRating, error) {
+	return s.repo.GetAverageRatingsInIntervals(startDate, endDate, intervalMinutes) // Delegate to the repository method
 }
