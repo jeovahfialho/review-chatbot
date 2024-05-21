@@ -4,14 +4,16 @@ import (
 	"errors"
 	"log"
 	"review-chatbot/models"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 // ReviewRepository defines the methods for interacting with review data
 type ReviewRepository interface {
-	CreateReview(review *models.Review) error // Create a new review
-	GetReviews() ([]models.Review, error)     // Retrieve all reviews
+	CreateReview(review *models.Review) error                       // Create a new review
+	GetReviews() ([]models.Review, error)                           // Retrieve all reviews
+	GetAverageRating(startDate, endDate time.Time) (float64, error) // Get Average rating of reviews
 }
 
 // reviewRepository is the implementation of the ReviewRepository interface
@@ -56,4 +58,17 @@ func (r *reviewRepository) CreateReview(review *models.Review) error {
 		log.Printf("Error inserting review: %v", err)
 	}
 	return err // Return any error that occurred during the insertion
+}
+
+func (r *reviewRepository) GetAverageRating(startDate, endDate time.Time) (float64, error) {
+
+	var avgRating float64
+	query := "SELECT AVG(rating) as avg_rating FROM `reviews` WHERE `review_time` BETWEEN ? AND ?"
+
+	err := r.db.Get(&avgRating, query, startDate, endDate)
+
+	if err != nil {
+		return 0, err
+	}
+	return avgRating, nil
 }

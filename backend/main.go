@@ -52,6 +52,7 @@ func main() {
 	reviewController := controllers.NewReviewController(reviewService)
 	interactionController := controllers.NewInteractionController(interactionService)
 	chatbotHandler := controllers.NewChatbotHandler(interactionService, reviewService)
+	reviewStatsController := controllers.NewReviewStatsController(reviewService)
 
 	// Create a new Gin router
 	router := gin.Default()
@@ -62,13 +63,14 @@ func main() {
 	// API routes
 	api := router.Group("/api")
 	{
-		api.POST("/customers", customerController.CreateCustomer)         // Create a new customer
-		api.GET("/customers", customerController.GetCustomers)            // Get all customers
-		api.GET("/customers/:id", customerController.GetCustomerByID)     // Get a customer by ID
-		api.POST("/interaction", interactionController.CreateInteraction) // Create a new interaction
-		api.POST("/review", reviewController.CreateReview)                // Create a new review
-		api.GET("/reviews", reviewController.GetReviews)                  // Get all reviews
-		api.POST("/chatbot", chatbotHandler.Handle)                       // Handle chatbot interactions
+		api.POST("/customers", customerController.CreateCustomer)           // Create a new customer
+		api.GET("/customers", customerController.GetCustomers)              // Get all customers
+		api.GET("/customers/:id", customerController.GetCustomerByID)       // Get a customer by ID
+		api.POST("/interaction", interactionController.CreateInteraction)   // Create a new interaction
+		api.POST("/review", reviewController.CreateReview)                  // Create a new review
+		api.GET("/reviews", reviewController.GetReviews)                    // Get all reviews
+		api.GET("/reviews/average", reviewStatsController.GetAverageRating) // Get all reviews
+		api.POST("/chatbot", chatbotHandler.Handle)                         // Handle chatbot interactions
 	}
 
 	// Start the server on port 8080

@@ -3,12 +3,14 @@ package services
 import (
 	"review-chatbot/models"
 	"review-chatbot/repositories"
+	"time"
 )
 
 // ReviewService defines the methods for review-related operations
 type ReviewService interface {
-	CreateReview(review *models.Review) error // Create a new review
-	GetReviews() ([]models.Review, error)     // Retrieve all reviews
+	CreateReview(review *models.Review) error                       // Create a new review
+	GetReviews() ([]models.Review, error)                           // Retrieve all reviews
+	GetAverageRating(startDate, endDate time.Time) (float64, error) // Get Average rating of reviews
 }
 
 // reviewService is the implementation of the ReviewService interface
@@ -29,4 +31,8 @@ func (s *reviewService) CreateReview(review *models.Review) error {
 // GetReviews retrieves all reviews
 func (s *reviewService) GetReviews() ([]models.Review, error) {
 	return s.repo.GetReviews() // Delegate to the repository method
+}
+
+func (s *reviewService) GetAverageRating(startDate, endDate time.Time) (float64, error) {
+	return s.repo.GetAverageRating()
 }
